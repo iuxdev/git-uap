@@ -17,7 +17,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | environments.
 |
 */
-$config['base_url'] = 'http://localhost/grupo/git-uap/';
+$config['base_url'] = 'http://gituap.iuxdev.com/';
+//$config['base_url'] = 'http://localhost/grupo/git-uap/';
 
 /*
 |--------------------------------------------------------------------------

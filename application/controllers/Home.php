@@ -20,14 +20,52 @@ class Home extends CI_Controller {
 	 */
 	public function index()
 	{
-		$this->load->model('muser');
-		if ($this->muser->isSesion()) {
+		$this->load->model('Muser');
+		if ($this->Muser->isSesion()) {
 			$data['usuario']=$this->session->userdata('usuario');
-			$this->load->view('pageAuth',$data);
+			if($data['usuario']->idTipoUsuario<5){
+				$header='template/header_admin';
+			}else{
+				$header='template/header_user';
+			}
+
+			$data_header= '';
+			$data_body= '';
+			$data_footer= '';
+			$data = array(
+			    'title' => 'Repositorio de Tesis',
+			    'style' => array(),
+			    'script' => array(),
+			    'header' => $this->load->view($header, $data_header, true),
+			    'body' =>array(
+			    	$this->load->view('backend/banner', '', true),
+			    	$this->load->view('backend/index', '', true),
+			    ),
+			    'footer' => $this->load->view('template/footer', $data_footer, true)
+			);
+
+			$this->load->view('template/index', $data);
+
 		}else{
-			$this->load->view('home');
+			$data_header= '';
+			$data_body= '';
+			$data_footer= '';
+			$data = array(
+			    'title' => 'Repositorio de Tesis',
+			    'style' => array(),
+			    'script' => array('login.js'),
+			    'header' => $this->load->view('template/header', $data_header, true),
+			    'body' =>array(
+			    	$this->load->view('frontend/banner', '', true),
+			    	$this->load->view('frontend/index', '', true),
+			    	$this->load->view('frontend/login', '', true)
+			    ),
+			    'footer' => $this->load->view('template/footer', $data_footer, true)
+			);
+
+			$this->load->view('template/index', $data);
 		}
-		
+
 	}
 	public function error404()
 	{
@@ -38,21 +76,29 @@ class Home extends CI_Controller {
 	{
 		$config['upload_path'] = './files/pdf/';
 		$config['allowed_types'] = 'pdf';
-		$config['max_size']	= '2000';
-		
+		$config['max_size']	= '10000';
+
 		$this->load->library('upload', $config);
 
 		if ( $this->upload->do_upload('pdf')){
-			var_dump($this->upload->data());
+		 	var_dump($this->upload->data());
 
-			$this->load->helper('gpdf_thumb');
-			 
-			$pdf_file_url = base_url()."files/pdf/".$this->upload->data()['file_name'];
-			echo $pdf_file_url;
-			$file_path = "./files/pdfimage/pdf_thumb.png";
-			saveGPDFThumb($pdf_file_url, $file_path);
-			//show the image
-			//echo "<p><a href=\"$pdfWithPath\"><img src=\"$thumbDirectory$thumb\" alt=\"\" /></a></p>";
+			$pdf_file   = 'files/pdf/'.$this->upload->data()['raw_name'].'.pdf';
+			$save_to    = 'files/pdfimage/'.$this->upload->data()['raw_name'].'.jpg';
+
+			if (! is_readable('./'.$pdf_file)) {
+			    echo 'Este archivo no se puede leer.';
+			    exit();
+			}
+			try{
+				$img = new Imagick('./'.$pdf_file.'[0]');
+				$img->setResolution(300, 300);
+				$img->setImageFormat('jpg');
+				$img->writeImages('./'.$save_to, false);
+				echo '<img src="'.base_url().$save_to.'" alt="">';
+			}catch(Exception $e){
+				echo $e->getMessage();
+			}
 		}else{
 			var_dump($this->upload->display_errors());
 		}
